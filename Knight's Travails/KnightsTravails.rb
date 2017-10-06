@@ -9,22 +9,23 @@ class KnightPathFinder
     [-2,1],
     [-2,-1],
   ]
+  attr_accessor :path
 
   def initialize(pos)
     @start_position = pos
-    @visited_positions = []
+    @visited_positions = [@start_position]
     @board = Array.new(8) { Array.new(8) }
+    @path = []
   end
 
   def self.valid_moves(pos)
     result = []
 
     POSSIBLE_MOVES.each do |move|
-      array = pos
+      array = pos.dup
       array[0] += move[0]
       array[1] += move[1]
-
-      if !@visited_positions.include?(array) && (0..7).include?(array[0]) && (0..7).include?(array[1])
+      if (0..7).to_a.include?(array[0]) && (0..7).to_a.include?(array[1])
         result << array
       end
     end
@@ -32,6 +33,31 @@ class KnightPathFinder
     result
   end
 
+  def new_move_positions(pos)
+    arr = KnightPathFinder.valid_moves(pos)
+    arr.reject! { |position| @visited_positions.include?(position) }
+    @visited_positions.concat(arr)
+    arr
+  end
+
+  def build_move_tree
+    queue = [PolyTreeNode.new(@start_position)]
+    until queue.empty?
+      current_node = queue.shift
+      arr = new_move_positions(current_node.value)
+      arr.each do |val|
+        node = PolyTreeNode.new(val)
+        current_node.add_child(node)
+        queue << node
+      end
+
+      @path << current_node
+    end
+  end
+
+  # @path.each do |node|
+  #   p "value: #{node.value}, children: #{node.children.map {|i| i.value}}"
+  # end
 end
 
 
